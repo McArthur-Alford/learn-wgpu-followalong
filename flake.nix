@@ -1,22 +1,33 @@
 {
-  inputs = { nixpkgs.url = "github:nixos/nixpkgs"; };
+  inputs = {
+    naersk.url = "github:nix-community/naersk/master";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    utils.url = "github:numtide/flake-utils";
+  };
 
-  outputs = { self, nixpkgs }:
-    let pkgs = nixpkgs.legacyPackages.x86_64-linux;
-    in {
-      devShell.x86_64-linux = pkgs.mkShell rec { 
-        name = "bevy-env";
-        nativeBuildInputs = with pkgs; [ pkg-config udev alsa-lib pkg-config ];
-        buildInputs = with pkgs; [ 
-          udev alsa-lib vulkan-loader 
-          xorg.libX11 xorg.libXcursor xorg.libXi xorg.libXrandr
-          vulkan-loader libxkbcommon wayland rustc rustup 
-          rustfmt rust-analyzer clippy lldb ]; 
-        shellHook = ''export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:${pkgs.lib.makeLibraryPath [
-          pkgs.vulkan-loader
-        ]}"
-        zsh
-        '';
-      };
-   };
+  outputs = { self, nixpkgs, utils, naersk }:
+    utils.lib.eachDefaultSystem (system:
+      let
+        pkgs = import nixpkgs { inherit system; };
+        naersk-lib = pkgs.callPackage naersk { };
+      in
+      {
+        defaultPackage = naersk-lib.buildPackage ./.;
+        devShell = with pkgs; mkShell {
+          nativeBuildInputs = with pkgs; [ pkg-config udev alsa-lib pkg-config ];
+          buildInputs = with pkgs; [ 
+            cargo rustc rustfmt rust-analyzer rustPackages.clippy rustup
+            xorg.libX11 
+            xorg.libXcursor 
+            xorg.libXi 
+            xorg.libXrandr
+          ]; 
+          RUST_SRC_PATH = rustPlatform.rustLibSrc;
+          shellHook = ''export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:${pkgs.lib.makeLibraryPath [
+            pkgs.vulkan-loader
+          ]}"
+          '';
+         };
+      });
 }
+

@@ -1,0 +1,3 @@
+[[language]]
+name = "wgsl"
+language-server = { command = "/home/mcarthur/.cargo/bin/wgsl_analyzer" }
