@@ -48,21 +48,5 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
             out += lum * mult;
         }
     }
-    // if out > 0.5 {
-    //     out = 1.0;
-    // } else {
-    //     out = 0.0;
-    // }
-    // var out = textureSample(t_diffuse, s_diffuse, in.tex_coords);
     return vec4<f32>(out, out, out, 1.0);
-
-    // let li = in.clip_position.xy / 255.;
-
-    // let y = sin(li.x) + 1.0;
-
-    // let color = smoothstep(0., 0.1, abs(y - li.y));
-
-    // return vec4(vec3(color), 1.0);
-    
-    // return vec4<f32>(pow(((in.color / 255.0 + 0.055) / 1.055), vec3<f32>(2.4, 2.4, 2.4)), 1.0);
 }
