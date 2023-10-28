@@ -445,6 +445,8 @@ impl State {
             self.surface.configure(&self.device, &self.config);
             self.depth_texture =
                 texture::Texture::create_depth_texture(&self.device, &self.config, "depth_texture");
+
+            self.camera.aspect = self.config.width as f32 / self.config.height as f32;
         }
     }
 
