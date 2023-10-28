@@ -1,4 +1,4 @@
-use crate::tutorial1_surface::State;
+use crate::surface::State;
 use winit::{
     event::*,
     event_loop::{ControlFlow, EventLoop},

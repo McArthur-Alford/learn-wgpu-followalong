@@ -1,4 +1,4 @@
-use learn_wgpu::tutorial1_window::run;
+use learn_wgpu::window::run;
 
 fn main() {
     pollster::block_on(run());
