@@ -89,7 +89,7 @@ const VERTICES: &[Vertex] = &[
 
 const INDICES: &[u16] = &[3, 0, 2, 3, 1, 0];
 
-const NUM_INSTANCES_PER_ROW: u32 = 1000;
+const NUM_INSTANCES_PER_ROW: u32 = 10;
 const INSTANCE_DISPLACEMENT: cgmath::Vector3<f32> = cgmath::Vector3::new(
     NUM_INSTANCES_PER_ROW as f32 * 0.5,
     0.0,
