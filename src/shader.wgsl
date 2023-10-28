@@ -47,26 +47,22 @@ var s_diffuse: sampler;
 
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
+    return textureSample(t_diffuse, s_diffuse, in.tex_coords);
     // var kernel: array<f32, 9> = array<f32, 9>(
-    //     -1.0, -1.0, -1.0,
-    //     -1.0,  8.0, -1.0,
-    //     -1.0, -1.0, -1.0
+    //     -1.0,  0.0,  1.0,
+    //     -2.0,  0.0,  2.0,
+    //     -1.0,  0.0,  1.0
     // );
-    var kernel: array<f32, 9> = array<f32, 9>(
-        -1.0,  0.0,  1.0,
-        -2.0,  0.0,  2.0,
-        -1.0,  0.0,  1.0
-    );
-    var out = 0.0;
-    let dims = vec2<f32>(textureDimensions(t_diffuse));
-    for (var x: i32 = -1; x <= 1; x++) {
-        for (var y: i32 = -1; y <= 1; y++) {
-            var coord = in.tex_coords + vec2<f32>(f32(x), f32(y)) / dims;
-            var sample = textureSample(t_diffuse, s_diffuse, coord);
-            var lum = (sample.r + sample.g + sample.b) / 3.0;
-            var mult = kernel[(x+1) + (y+1)*3];
-            out += lum * mult;
-        }
-    }
-    return vec4<f32>(out, out, out, 1.0);
+    // var out = 0.0;
+    // let dims = vec2<f32>(textureDimensions(t_diffuse));
+    // for (var x: i32 = -1; x <= 1; x++) {
+    //     for (var y: i32 = -1; y <= 1; y++) {
+    //         var coord = in.tex_coords + vec2<f32>(f32(x), f32(y)) / dims;
+    //         var sample = textureSample(t_diffuse, s_diffuse, coord);
+    //         var lum = (sample.r + sample.g + sample.b) / 3.0;
+    //         var mult = kernel[(x+1) + (y+1)*3];
+    //         out += lum * mult;
+    //     }
+    // }
+    // return vec4<f32>(out, out, out, 1.0);
 }
