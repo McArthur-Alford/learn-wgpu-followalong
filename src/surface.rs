@@ -89,7 +89,7 @@ const VERTICES: &[Vertex] = &[
 
 const INDICES: &[u16] = &[3, 0, 2, 3, 1, 0];
 
-const NUM_INSTANCES_PER_ROW: u32 = 10;
+const NUM_INSTANCES_PER_ROW: u32 = 1000;
 const INSTANCE_DISPLACEMENT: cgmath::Vector3<f32> = cgmath::Vector3::new(
     NUM_INSTANCES_PER_ROW as f32 * 0.5,
     0.0,
@@ -361,18 +361,14 @@ impl State {
                     } * 1.5
                         - INSTANCE_DISPLACEMENT;
 
-                    let rotation = cgmath::Quaternion::from_axis_angle(
-                        cgmath::Vector3::new(1.0, 0.0, 1.0).normalize(),
-                        cgmath::Deg(instance_rotation),
-                    );
-                    // let rotation = if position.is_zero() {
-                    //     cgmath::Quaternion::from_axis_angle(
-                    //         cgmath::Vector3::unit_z(),
-                    //         cgmath::Deg(0.0),
-                    //     )
-                    // } else {
-                    //     cgmath::Quaternion::from_axis_angle(position.normalize(), cgmath::Deg(45.0))
-                    // };
+                    let rotation = if position.is_zero() {
+                        cgmath::Quaternion::from_axis_angle(
+                            cgmath::Vector3::unit_z(),
+                            cgmath::Deg(0.0),
+                        )
+                    } else {
+                        cgmath::Quaternion::from_axis_angle(position.normalize(), cgmath::Deg(45.0))
+                    };
 
                     Instance { position, rotation }
                 })
@@ -444,47 +440,47 @@ impl State {
             bytemuck::cast_slice(&[self.camera_uniform]),
         );
 
-        self.instance_rotation = self.instance_rotation + 0.01;
-        let rotation = self.instance_rotation;
+        // self.instance_rotation = self.instance_rotation + 0.01;
+        // let rotation = self.instance_rotation;
 
-        // Spin the things!
-        self.instances = (0..NUM_INSTANCES_PER_ROW)
-            .flat_map(|z| {
-                (0..NUM_INSTANCES_PER_ROW).map(move |x| {
-                    let position = cgmath::Vector3 {
-                        x: x as f32,
-                        y: 0.0,
-                        z: z as f32,
-                    } * 1.5
-                        - INSTANCE_DISPLACEMENT;
+        // // Spin the things!
+        // self.instances = (0..NUM_INSTANCES_PER_ROW)
+        //     .flat_map(|z| {
+        //         (0..NUM_INSTANCES_PER_ROW).map(move |x| {
+        //             let position = cgmath::Vector3 {
+        //                 x: x as f32,
+        //                 y: 0.0,
+        //                 z: z as f32,
+        //             } * 1.5
+        //                 - INSTANCE_DISPLACEMENT;
 
-                    let rotation = cgmath::Quaternion::from_axis_angle(
-                        cgmath::Vector3::new(1.0, 0.0, 1.0).normalize(),
-                        cgmath::Deg(rotation),
-                    );
-                    // let rotation = if position.is_zero() {
-                    //     cgmath::Quaternion::from_axis_angle(
-                    //         cgmath::Vector3::unit_z(),
-                    //         cgmath::Deg(0.0),
-                    //     )
-                    // } else {
-                    //     cgmath::Quaternion::from_axis_angle(position.normalize(), cgmath::Deg(45.0))
-                    // };
+        //             let rotation = cgmath::Quaternion::from_axis_angle(
+        //                 cgmath::Vector3::new(1.0, 0.0, 1.0).normalize(),
+        //                 cgmath::Deg(rotation),
+        //             );
+        //             // let rotation = if position.is_zero() {
+        //             //     cgmath::Quaternion::from_axis_angle(
+        //             //         cgmath::Vector3::unit_z(),
+        //             //         cgmath::Deg(0.0),
+        //             //     )
+        //             // } else {
+        //             //     cgmath::Quaternion::from_axis_angle(position.normalize(), cgmath::Deg(45.0))
+        //             // };
 
-                    Instance { position, rotation }
-                })
-            })
-            .collect::<Vec<_>>();
-        let instance_data = self
-            .instances
-            .iter()
-            .map(Instance::to_raw)
-            .collect::<Vec<_>>();
-        self.queue.write_buffer(
-            &self.instance_buffer,
-            0,
-            bytemuck::cast_slice(&instance_data),
-        );
+        //             Instance { position, rotation }
+        //         })
+        //     })
+        //     .collect::<Vec<_>>();
+        // let instance_data = self
+        //     .instances
+        //     .iter()
+        //     .map(Instance::to_raw)
+        //     .collect::<Vec<_>>();
+        // self.queue.write_buffer(
+        //     &self.instance_buffer,
+        //     0,
+        //     bytemuck::cast_slice(&instance_data),
+        // );
     }
 
     pub fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
