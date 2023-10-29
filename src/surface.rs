@@ -1,6 +1,6 @@
 use crate::camera_controller::{Camera, CameraController, CameraUniform};
 use crate::depth_pass::DepthPass;
-use crate::model::{ModelVertex, Vertex};
+use crate::model::{DrawModel, Model, ModelVertex, Vertex};
 // use crate::vertex::*;
 use bytemuck;
 use cgmath;
@@ -8,7 +8,7 @@ use cgmath::prelude::*;
 use wgpu::util::DeviceExt;
 use winit::{event::WindowEvent, window::Window};
 
-use crate::texture;
+use crate::{resources, texture};
 
 struct Instance {
     position: cgmath::Vector3<f32>,
@@ -98,6 +98,7 @@ const VERTICES: &[ModelVertex] = &[
 ];
 
 const NUM_INSTANCES_PER_ROW: u32 = 10;
+const SPACE_BETWEEN: f32 = 3.0;
 const INSTANCE_DISPLACEMENT: cgmath::Vector3<f32> = cgmath::Vector3::new(
     NUM_INSTANCES_PER_ROW as f32 * 0.5,
     0.0,
@@ -125,6 +126,7 @@ pub struct State {
     surface: wgpu::Surface,
     vertex_buffer: wgpu::Buffer,
     window: Window,
+    obj_model: Model,
 }
 
 impl State {
@@ -218,6 +220,11 @@ impl State {
                 ],
                 label: Some("texture_bind_group_layer"),
             });
+
+        let obj_model =
+            resources::load_model("cube.obj", &device, &queue, &texture_bind_group_layout)
+                .await
+                .unwrap();
 
         let diffuse_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             layout: &texture_bind_group_layout,
@@ -352,12 +359,12 @@ impl State {
         let instances = (0..NUM_INSTANCES_PER_ROW)
             .flat_map(|z| {
                 (0..NUM_INSTANCES_PER_ROW).map(move |x| {
-                    let position = cgmath::Vector3 {
+                    let position = (cgmath::Vector3 {
                         x: x as f32,
                         y: 0.0,
                         z: z as f32,
-                    } * 1.5
-                        - INSTANCE_DISPLACEMENT;
+                    } - INSTANCE_DISPLACEMENT)
+                        * SPACE_BETWEEN;
 
                     let rotation = if position.is_zero() {
                         cgmath::Quaternion::from_axis_angle(
@@ -403,6 +410,7 @@ impl State {
             instance_buffer,
             instance_rotation,
             depth_pass,
+            obj_model,
         }
     }
 
@@ -522,8 +530,9 @@ impl State {
             render_pass.set_pipeline(&self.render_pipeline);
             render_pass.set_bind_group(0, &self.diffuse_bind_group, &[]);
             render_pass.set_bind_group(1, &self.camera_bind_group, &[]);
-            render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
-            render_pass.draw(0..self.num_vertices, 0..self.instances.len() as u32);
+
+            render_pass
+                .draw_mesh_instanced(&self.obj_model.meshes[0], 0..self.instances.len() as u32)
         }
 
         self.depth_pass.render(&view, &mut encoder);

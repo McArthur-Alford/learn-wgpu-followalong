@@ -5,3 +5,4 @@ pub mod surface;
 pub mod texture;
 pub mod vertex;
 pub mod window;
+pub mod resources;
