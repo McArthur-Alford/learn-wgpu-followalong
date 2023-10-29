@@ -1,6 +1,7 @@
 use crate::camera_controller::{Camera, CameraController, CameraUniform};
 use crate::depth_pass::DepthPass;
-use crate::vertex::*;
+use crate::model::{ModelVertex, Vertex};
+// use crate::vertex::*;
 use bytemuck;
 use cgmath;
 use cgmath::prelude::*;
@@ -63,31 +64,38 @@ impl InstanceRaw {
     }
 }
 
-const VERTICES: &[Vertex] = &[
-    // Changed
-    Vertex {
-        position: [1.0, 1.0, 0.0],
-        tex_coords: [1.0, 0.0],
-    }, // A
-    Vertex {
-        position: [1.0, -1.0, 0.0],
-        tex_coords: [1.0, 1.0],
-    }, // B
-    Vertex {
-        position: [-1.0, 1.0, 0.0],
-        tex_coords: [0.0, 0.0],
-    }, // C
-    Vertex {
+const VERTICES: &[ModelVertex] = &[
+    ModelVertex {
         position: [-1.0, -1.0, 0.0],
         tex_coords: [0.0, 1.0],
-    }, // D
-       // Vertex {
-       //     position: [0.44147372, 0.2347359, 0.0],
-       //     tex_coords: [0.9414737, 0.2652641],
-       // }, // E
+        normal: [0.0, 0.0, 0.0],
+    },
+    ModelVertex {
+        position: [1.0, -1.0, 0.0],
+        tex_coords: [1.0, 1.0],
+        normal: [0.0, 0.0, 0.0],
+    },
+    ModelVertex {
+        position: [1.0, 1.0, 0.0],
+        tex_coords: [1.0, 0.0],
+        normal: [0.0, 0.0, 0.0],
+    },
+    ModelVertex {
+        position: [-1.0, -1.0, 0.0],
+        tex_coords: [0.0, 1.0],
+        normal: [0.0, 0.0, 0.0],
+    }, // REPEATED
+    ModelVertex {
+        position: [1.0, 1.0, 0.0],
+        tex_coords: [1.0, 0.0],
+        normal: [0.0, 0.0, 0.0],
+    }, // REPEATED
+    ModelVertex {
+        position: [-1.0, 1.0, 0.0],
+        tex_coords: [0.0, 0.0],
+        normal: [0.0, 0.0, 0.0],
+    },
 ];
-
-const INDICES: &[u16] = &[3, 0, 2, 3, 1, 0];
 
 const NUM_INSTANCES_PER_ROW: u32 = 10;
 const INSTANCE_DISPLACEMENT: cgmath::Vector3<f32> = cgmath::Vector3::new(
@@ -107,11 +115,9 @@ pub struct State {
     device: wgpu::Device,
     diffuse_bind_group: wgpu::BindGroup,
     diffuse_texture: texture::Texture,
-    index_buffer: wgpu::Buffer,
     instance_buffer: wgpu::Buffer,
     instance_rotation: f32,
     instances: Vec<Instance>,
-    num_indices: u32,
     num_vertices: u32,
     queue: wgpu::Queue,
     render_pipeline: wgpu::RenderPipeline,
@@ -291,7 +297,7 @@ impl State {
             vertex: wgpu::VertexState {
                 module: &shader,
                 entry_point: "vs_main",
-                buffers: &[Vertex::desc(), InstanceRaw::desc()],
+                buffers: &[ModelVertex::desc(), InstanceRaw::desc()],
             },
             fragment: Some(wgpu::FragmentState {
                 module: &shader,
@@ -338,14 +344,6 @@ impl State {
             contents: bytemuck::cast_slice(VERTICES),
             usage: wgpu::BufferUsages::VERTEX,
         });
-
-        let index_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("Index Buffer"),
-            contents: bytemuck::cast_slice(INDICES),
-            usage: wgpu::BufferUsages::INDEX,
-        });
-
-        let num_indices = INDICES.len() as u32;
 
         let num_vertices = VERTICES.len() as u32;
 
@@ -394,8 +392,6 @@ impl State {
             render_pipeline,
             vertex_buffer,
             num_vertices,
-            index_buffer,
-            num_indices,
             diffuse_bind_group,
             diffuse_texture,
             camera,
@@ -527,8 +523,7 @@ impl State {
             render_pass.set_bind_group(0, &self.diffuse_bind_group, &[]);
             render_pass.set_bind_group(1, &self.camera_bind_group, &[]);
             render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
-            render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
-            render_pass.draw_indexed(0..self.num_indices, 0, 0..self.instances.len() as u32);
+            render_pass.draw(0..self.num_vertices, 0..self.instances.len() as u32);
         }
 
         self.depth_pass.render(&view, &mut encoder);
